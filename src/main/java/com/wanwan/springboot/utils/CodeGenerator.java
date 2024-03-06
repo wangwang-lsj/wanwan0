@@ -2,10 +2,10 @@ package com.wanwan.springboot.utils;
 
 import com.baomidou.mybatisplus.generator.FastAutoGenerator;
 import com.baomidou.mybatisplus.generator.config.OutputFile;
-import com.baomidou.mybatisplus.generator.config.rules.DbColumnType;
+import org.springframework.beans.factory.annotation.Value;
 
 
-import java.sql.Types;
+import javax.annotation.Resource;
 import java.util.Collections;
 
 /**
@@ -14,6 +14,8 @@ import java.util.Collections;
  * @Description:
  */
 public class CodeGenerator {
+    @Value("${server.ip}")
+    static private String serverIp;
     public static void main(String[] args) {
         generate();
     }
@@ -27,13 +29,19 @@ public class CodeGenerator {
                 })
                 .packageConfig(builder -> {
                     builder.parent("com.wanwan.springboot") // 设置父包名
-                            .moduleName("") // 设置父包模块名
+                            .moduleName(null) // 设置父包模块名
                             .pathInfo(Collections.singletonMap(OutputFile.mapperXml, "D:\\IdeaProjects\\小白做毕设2024\\springboot\\src\\main\\resources\\mapper\\")); // 设置mapperXml生成路径
                 })
                 .strategyConfig(builder -> {
-                    builder.addInclude("sys_user") // 设置需要生成的表名
+                    builder.addInclude("course") // 设置需要生成的表名
                             .addTablePrefix("t_", "sys_"); // 设置过滤表前缀
-
+                    builder.entityBuilder()
+                            .enableLombok();
+                    builder.controllerBuilder()
+                            .enableHyphenStyle()
+                            .enableRestStyle();
+                    builder.mapperBuilder()
+                            .enableMapperAnnotation();
                 })
                 // .templateEngine(new FreemarkerTemplateEngine()) // 使用Freemarker引擎模板，默认的是Velocity引擎模板
                 .execute();

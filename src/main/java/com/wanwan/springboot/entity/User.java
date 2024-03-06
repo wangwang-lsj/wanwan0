@@ -5,8 +5,13 @@ import com.baomidou.mybatisplus.annotation.TableId;
 import com.baomidou.mybatisplus.annotation.TableName;
 import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * <p>
@@ -14,8 +19,10 @@ import io.swagger.annotations.ApiModelProperty;
  * </p>
  *
  * @author wanwan
- * @since 2024-01-21
+ * @since 2024-01-22
  */
+@Getter
+@Setter
 @TableName("sys_user")
 @ApiModel(value = "User对象", description = "")
 public class User implements Serializable {
@@ -23,12 +30,12 @@ public class User implements Serializable {
     private static final long serialVersionUID = 1L;
 
       @ApiModelProperty("ID")
-        @TableId(value = "id", type = IdType.AUTO)
+      @TableId(value = "id", type = IdType.AUTO)
       private Integer id;
 
       @ApiModelProperty("用户名")
       private String username;
-
+      @JsonIgnore
       @ApiModelProperty("密码")
       private String password;
 
@@ -45,84 +52,19 @@ public class User implements Serializable {
       private String address;
 
       @ApiModelProperty("创建时间")
-      private LocalDateTime createTime;
+      private Date createTime;
 
-    
-    public Integer getId() {
-        return id;
-    }
+      @ApiModelProperty("头像路径")
+      private String avatarUrl;
 
-      public void setId(Integer id) {
-          this.id = id;
-      }
-    
-    public String getUsername() {
-        return username;
-    }
-
-      public void setUsername(String username) {
-          this.username = username;
-      }
-    
-    public String getPassword() {
-        return password;
-    }
-
-      public void setPassword(String password) {
-          this.password = password;
-      }
-    
-    public String getNickname() {
-        return nickname;
-    }
-
-      public void setNickname(String nickname) {
-          this.nickname = nickname;
-      }
-    
-    public String getEmail() {
-        return email;
-    }
-
-      public void setEmail(String email) {
-          this.email = email;
-      }
-    
-    public String getPhone() {
-        return phone;
-    }
-
-      public void setPhone(String phone) {
-          this.phone = phone;
-      }
-    
-    public String getAddress() {
-        return address;
-    }
-
-      public void setAddress(String address) {
-          this.address = address;
-      }
-    
-    public LocalDateTime getCreateTime() {
-        return createTime;
-    }
-
-      public void setCreateTime(LocalDateTime createTime) {
-          this.createTime = createTime;
-      }
-
-    @Override
-    public String toString() {
-        return "User{" +
-              "id=" + id +
-                  ", username=" + username +
-                  ", password=" + password +
-                  ", nickname=" + nickname +
-                  ", email=" + email +
-                  ", phone=" + phone +
-                  ", address=" + address +
-                  ", createTime=" + createTime +
-              "}";
-    }
+      @ApiModelProperty("角色")
+      private String role;
+      @ApiModelProperty("性别")
+      private String gender;
+      @ApiModelProperty("生日")
+      private String birthday;
+      @ApiModelProperty("最近登陆")
+      private String recentlyLanded;
+      @ApiModelProperty("姓名")
+      private String realName;
 }

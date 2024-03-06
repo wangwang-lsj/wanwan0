@@ -1,0 +1,189 @@
+<template>
+  <div>
+    <el-input style="width: 200px;margin-right: 10px" placeholder="请输入文件名" prefix-icon="el-icon-search" v-model="name"></el-input>
+    <el-button style="margin-left: 5px" type="primary" @click="load">搜索</el-button>
+    <el-button style="margin-left: 5px" type="warning" @click="reset">重置</el-button>
+    <div style="margin: 10px 0">
+      <el-upload :action="'http://'+ serverIp +':9090/file/upload'"
+                 :on-success="handleFileUploadSuccess"
+                 :on-error="handleFileUploadError"
+                 :show-file-list="false" style="display: inline-block; margin-right: 5px">
+        <el-button type="primary">上传文件 <i class="el-icon-top"></i></el-button>
+      </el-upload>
+      <el-popconfirm
+          confirm-button-text='确定'
+          cancel-button-text='取消'
+          icon="el-icon-info"
+          icon-color="red"
+          title="确定批量删除吗？"
+          @confirm="handleDeleteBatch"
+      >
+        <el-button type="danger" slot="reference" style="margin-right: 5px">批量删除 <i class="el-icon-remove-outline"></i></el-button>
+      </el-popconfirm>
+
+    </div>
+    <el-table :data="tableData" :header-cell-class-name="headerBg" @selection-change="handleSelectionChange" border stripe>
+      <el-table-column
+          type="selection"
+          width="55">
+      </el-table-column>
+      <el-table-column prop="id" label="ID" width="60">
+      </el-table-column>
+      <el-table-column prop="name" label="文件名称" width="400">
+      </el-table-column>
+      <el-table-column prop="type" label="文件类型" width="80">
+      </el-table-column>
+      <el-table-column prop="size" label="文件大小(kb)">
+        <template slot-scope="scope">
+          {{scope.row.size}}kb
+        </template>
+      </el-table-column>
+
+      <el-table-column label="预览">
+        <template slot-scope="scope">
+          <el-button type="primary" @click="preview(scope.row.url)">预览</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column label="下载">
+        <template slot-scope="scope">
+          <el-button type="primary" @click="handleDownload(scope.row.url)">下载</el-button>
+        </template>
+      </el-table-column>
+      <el-table-column prop="enable" label="启用">
+        <template slot-scope="scope">
+          <el-switch v-model="scope.row.enable" active-color="#13ce66" inactive-color="#ccc" @change="changeEnable(scope.row)"></el-switch>
+        </template>
+      </el-table-column>
+      <el-table-column label="操作" width="200" align="center">
+        <template slot-scope="scope">
+          <el-popconfirm
+              style="margin-left: 5px"
+              confirm-button-text='确定'
+              cancel-button-text='取消'
+              icon="el-icon-info"
+              icon-color="red"
+              title="您确定删除吗？"
+              @confirm="handleDelete(scope.row.id)"
+          >
+            <el-button type="danger" slot="reference">删除 <i class="el-icon-delete"></i></el-button>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div style="padding: 10px 0">
+      <el-pagination
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
+          :current-page="pageNum"
+          :page-sizes="[2 ,5, 10, 15, 20]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
+          :total="total">
+      </el-pagination>
+    </div>
+  </div>
+</template>
+
+<script>
+import {serverIp} from "../../../public/config";
+export default {
+  name: "File",
+  data(){
+    return{
+      serverIp: serverIp,
+      headerBg: 'headerBg',
+      tableData:[],
+      name: '',
+      multipleSelection: [],
+      pageNum: 1,
+      pageSize: 10,
+      total: 0,
+    }
+  },
+  created() {
+    this.load()
+  },
+  methods: {
+    load() {
+      this.request.get("/file/page", {
+            params: {
+              pageNum: this.pageNum,
+              pageSize: this.pageSize,
+              name: this.name,
+            }
+          }
+      ).then(res => {
+        if (res.code === '200') {
+          this.tableData = res.data.records
+          this.total = res.data.total
+        }
+
+      })
+    },
+    reset() {
+      this.name = ""
+      this.load()
+    },
+    handleSizeChange(pageSize) {
+      this.pageSize = pageSize
+      this.load()
+    },
+    handleCurrentChange(pageNum) {
+      this.pageNum = pageNum
+      this.load()
+    },
+    handleDelete(id) {
+      this.request.delete("/file/" + id).then(res => {
+        if (res.code === '200') {
+          this.$message.success("删除成功");
+        } else {
+          this.$message.error("删除失败")
+        }
+        this.load()
+      })
+    },
+    handleDeleteBatch() {
+      let ids = this.multipleSelection.map(v => v.id)
+      this.request.delete("/file/del/batch", {data: ids}).then(res => {
+        if (res.code === '200') {
+          this.$message.success("批量删除成功");
+        } else {
+          this.$message.error("批量删除失败")
+        }
+        this.load()
+      })
+    },
+    handleSelectionChange(val) {
+      console.log(val)
+      this.multipleSelection = val
+    },
+    handleFileUploadSuccess(res){
+      this.$message.success("上传成功")
+      console.log(res)
+      this.load()
+    },
+    handleFileUploadError(res){
+      this.$message.error("上传失败")
+      console.log(res)
+      this.load()
+    },
+    handleDownload(url){
+      window.open(url)
+    },
+    changeEnable(row){
+      this.request.post("/file/update",row).then(res=>{
+        if(res.code === '200'){
+          this.$message.success("操作成功")
+        }
+      })
+    },
+    preview(url) {
+      window.open('http://127.0.0.1:8012/onlinePreview?url=' + encodeURIComponent(window.btoa((url))))
+    },
+
+  }
+}
+</script>
+
+<style>
+</style>

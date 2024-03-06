@@ -1,0 +1,235 @@
+<template>
+  <div>
+    <div style="margin: 10px 0">
+      <el-input style="width: 200px;margin-right: 10px" placeholder="请输入角色名称" prefix-icon="el-icon-search" v-model="name"></el-input>
+      <el-button style="margin-left: 5px" type="primary" @click="load">搜索</el-button>
+      <el-button style="margin-left: 5px" type="warning" @click="reset">重置</el-button>
+
+    </div>
+    <div style="margin: 10px 0">
+      <el-button type="primary" @click="handleAdd"style="margin-right: 5px">新增 <i class="el-icon-circle-plus-outline"></i></el-button>
+      <template>
+        <el-popconfirm
+            confirm-button-text='确定'
+            cancel-button-text='取消'
+            icon="el-icon-info"
+            icon-color="red"
+            title="确定批量删除吗？"
+            @confirm="handleDeleteBatch"
+        >
+          <el-button type="danger" slot="reference" style="margin-right: 5px">批量删除 <i class="el-icon-remove-outline"></i></el-button>
+        </el-popconfirm>
+      </template>
+    </div>
+    <el-table :data="tableData" :header-cell-class-name="'headerBg'" @selection-change="handleSelectionChange" border stripe>
+      <el-table-column type="selection"></el-table-column>
+      <el-table-column prop="id" label="ID" width="80"></el-table-column>
+      <el-table-column prop="name" label="名称"></el-table-column>
+      <el-table-column prop="flag" label="唯一标识"></el-table-column>
+      <el-table-column prop="description" label="描述"></el-table-column>
+      <el-table-column label="操作" width="280" align="center">
+        <template slot-scope="scope">
+          <el-button type="danger" @click="handleMenu(scope.row)">分配菜单 <i class="el-icon-menu"></i></el-button>
+          <el-button type="warning" @click="handleEdit(scope.row)">编辑 <i class="el-icon-edit"></i></el-button>
+          <el-popconfirm
+              style="margin-left: 5px"
+              confirm-button-text='确定'
+              cancel-button-text='取消'
+              icon="el-icon-info"
+              icon-color="red"
+              title="您确定删除吗？"
+              @confirm="handleDelete(scope.row.id)"
+          >
+            <el-button type="danger" slot="reference">删除 <i class="el-icon-delete"></i></el-button>
+          </el-popconfirm>
+        </template>
+      </el-table-column>
+    </el-table>
+    <div style="padding: 10px 0">
+      <el-pagination
+          :total="total">
+      </el-pagination>
+    </div>
+    <el-dialog title="角色信息" :visible.sync="dialogFormVisible" width="20%">
+      <el-form label-width="80px" size="small">
+        <el-form-item label="名称" >
+          <el-input v-model="form.name" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="唯一标识" >
+          <el-input v-model="form.flag" autocomplete="off"></el-input>
+        </el-form-item>
+        <el-form-item label="描述" >
+          <el-input v-model="form.description" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="save">确 定</el-button>
+      </div>
+    </el-dialog>
+    <el-dialog title="菜单分配" :visible.sync="menuDialogVisible" width="20%">
+      <el-tree
+          :props="props"
+          :data="menuData"
+          show-checkbox
+          node-key="id"
+          ref="tree"
+          check-strictly
+          :default-expanded-keys="expands"
+          :default-checked-keys="checks">
+        <span class="custom-tree-node" slot-scope="{ node, data }">
+          <span><i :class="data.icon"></i> {{data.name}}</span>
+        </span>
+      </el-tree>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="menuDialogVisible = false">取 消</el-button>
+        <el-button type="primary" @click="saveRoleMenu">确 定</el-button>
+      </div>
+    </el-dialog>
+  </div>
+</template>
+
+<script>
+export default {
+  name: "User",
+  data(){
+    return{
+      tableData: [],
+      total: 0,
+      // pageNum: 1,
+      // pageSize: 10,
+      name: "",
+      dialogFormVisible: false,
+      menuDialogVisible: false,
+      form:{},
+      multipleSelection:[],
+      menuData: [],
+      props: {
+        label: 'name',
+      },
+      checks:[],
+      expands:[],
+      roleId: 0,
+      roleFlag: '',
+    }
+  },
+  created() {
+    this.load()
+  },
+  methods:{
+    load(){
+      this.request.get("/role",{
+            params:{
+              name:this.name,
+            }
+          }
+      ).then(res=>{
+        if(res.code==='200'){
+          this.tableData = res.data
+          this.total = res.data.length
+        }
+
+      })
+
+    },
+    reset(){
+      this.name=""
+      this.request.post("/role/reset")
+      this.load()
+    },
+    handleSizeChange(pageSize) {
+      this.pageSize=pageSize
+      this.load()
+    },
+    handleCurrentChange(pageNum) {
+      this.pageNum=pageNum
+      this.load()
+    },
+    handleAdd(){
+      this.dialogFormVisible=true
+      this.form={}
+    },
+    handleMenu(row){
+      this.menuDialogVisible = true
+      this.roleId = row.id
+      this.roleFlag = row.flag
+
+      this.request.get("/menu",{
+            params:{
+              name:"",
+            }
+          }
+      ).then(res=>{
+        if(res.code==='200'){
+          this.menuData = res.data
+          this.expands = this.menuData.map(v=>v.id)
+        }
+      })
+      this.request.get("/role/roleMenu/"+row.id).then(res=>{
+        if(res.code==='200'){
+          this.$refs.tree.setCheckedKeys(res.data);
+        }
+      })
+    },
+    handleEdit(row){
+      this.form = row
+      this.dialogFormVisible = true
+      this.load()
+    },
+    handleDelete(id){
+      this.request.delete("/role/"+id).then(res=>{
+        if (res.code === '200'){
+          this.$message.success("删除成功");
+        }else{
+          this.$message.error("删除失败")
+        }
+        this.load()
+      })
+    },
+    handleDeleteBatch(){
+      let ids = this.multipleSelection.map(v => v.id)
+      this.request.delete("/role/del/batch", {data:ids}).then(res=>{
+        if (res.code === '200'){
+          this.$message.success("批量删除成功");
+        }else{
+          this.$message.error("批量删除失败")
+        }
+        this.load()
+      })
+    },
+    handleSelectionChange(val){
+      console.log(val)
+      this.multipleSelection = val
+    },
+    save(){
+      this.request.post("/role",this.form).then(res=>{
+        if (res.code === '200'){
+          this.$message.success("添加成功");
+          this.dialogFormVisible=false
+        }else{
+          this.$message.error("添加失败")
+        }
+        this.load()
+      })
+    },
+    saveRoleMenu(){
+      this.request.post("/role/roleMenu/"+this.roleId,this.$refs.tree.getCheckedKeys()).then(res=>{
+        if (res.code === '200'){
+          this.menuDialogVisible = false
+
+          // 操作管理员角色的时候需要重新登录
+          if(this.roleFlag === 'ADMIN'){
+            this.$store.commit("logout")
+          }
+          this.$message.success("分配成功")
+        }else {
+          this.$message.error("分配失败")
+        }
+      })
+    }
+  }
+}
+</script>
+
+<style>
+</style>

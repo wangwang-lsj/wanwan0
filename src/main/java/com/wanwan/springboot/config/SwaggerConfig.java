@@ -17,6 +17,7 @@ import java.util.ArrayList;
 
 /**
  1. swagger配置类
+ http://localhost:8080/swagger-ui/index.html
  */
 @Configuration
 @EnableOpenApi
@@ -37,7 +38,7 @@ public class SwaggerConfig {
 
     private ApiInfo apiInfo() {
         return new ApiInfoBuilder()
-                .title("外卖项目接口文档") // 文档标题
+                .title("后台项目接口文档") // 文档标题
                 .description("基本的一些接口说明") // 文档基本描述
                 .contact(new Contact("xxxx", "https://blog.csdn.net", "3491454639@qq.com")) // 联系人信息
                 .termsOfServiceUrl("http://terms.service.url/组织链接") // 组织链接

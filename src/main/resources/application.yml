@@ -8,19 +8,28 @@
 #  com.wanwan.springboot.mybatis.entity
 # 应用服务 WEB 访问端口
 server:
-  port: 8080
+  ip : localhost
+#  ip : 120.79.148.126
+  port: 9090
 
 #数据库配置
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-    url: jdbc:mysql://localhost:3306/wanwan?serverTimezone=GMT%2b8
+    url: jdbc:mysql://${server.ip}:3306/wanwan?serverTimezone=GMT%2b8
     username: root
     password: root
   mvc:
     pathmatch:
       # 整合swagger时报错解决
       matching-strategy: ant_path_matcher
+  servlet:
+    multipart:
+      max-file-size: 100MB
+      max-request-size: 1000MB
+  redis:
+    host: 127.0.0.1
+    port: 6379
 mybatis:
   #扫描所有xml文件
   mapper-locations: classpath:mapper/*.xml
@@ -30,3 +39,8 @@ mybatis:
 mybatis-plus:
   configuration:
     log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+files:
+  upload:
+#    path: /home/files/
+    path: D:/IdeaProjects/小白做毕设2024/files/
