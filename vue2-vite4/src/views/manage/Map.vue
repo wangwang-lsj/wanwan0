@@ -22,7 +22,7 @@ export default {
     }
   },
   mounted() {
-    this.initAMap();
+    setTimeout(this.initAMap,1000)
   },
   unmounted() {
     this.map?.destroy();

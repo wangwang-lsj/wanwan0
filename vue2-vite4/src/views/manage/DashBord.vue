@@ -5,31 +5,31 @@
         <el-card style="color: #409EFF">
           <div><i class="el-icon-user-solid"></i>用户总数</div>
           <div style="padding:10px 0; text-align: center; font-weight: bold">
-            100
+            {{statistics.userCount}}
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card style="color: #67C23A">
-          <div><i class="el-icon-money"></i>销售总量</div>
+          <div><i class="el-icon-money"></i>文章总数</div>
           <div style="padding:10px 0; text-align: center; font-weight: bold">
-            ￥ 1000000
+            {{statistics.articleCount}}
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card style="color: #F56C6C">
-          <div><i class="el-icon-bank-card"></i>收益总额</div>
+          <div><i class="el-icon-bank-card"></i>评论总数</div>
           <div style="padding:10px 0; text-align: center; font-weight: bold">
-            ￥ 300000
+            {{statistics.commentCount}}
           </div>
         </el-card>
       </el-col>
       <el-col :span="6">
         <el-card style="color: #909399">
-          <div><i class="el-icon-s-shop"></i>门店总数</div>
+          <div><i class="el-icon-s-shop"></i>留言总数</div>
           <div style="padding:10px 0; text-align: center; font-weight: bold">
-            20
+            {{statistics.leaveWordCount}}
           </div>
         </el-card>
       </el-col>
@@ -48,16 +48,17 @@
 
 <script>
 import * as echarts from 'echarts';
+import echartsApi from "@/api/echartsApi.js";
 export default {
   name: "DashBord",
   data(){
     return{
-
+      statistics: [],
     }
   },
   mounted() {
-    let chartDom = document.getElementById('main');
-    let myChart = echarts.init(chartDom);
+    // let chartDom = document.getElementById('main');
+    // let myChart = echarts.init(chartDom);
     let option;
 
     option = {
@@ -105,8 +106,8 @@ export default {
     };
 
     //饼图
-    let pieChartDom = document.getElementById('pie');
-    let pieChart = echarts.init(pieChartDom);
+    // let pieChartDom = document.getElementById('pie');
+    // let pieChart = echarts.init(pieChartDom);
     let pieOption;
 
     pieOption = {
@@ -168,21 +169,26 @@ export default {
         }
       ]
     };
-    this.request.get("/echarts/members").then(res=>{
+    // this.request.get("/echarts/members").then(res=>{
+    //   if (res.code === '200'){
+    //     option.series[0].data = res.data
+    //     option.series[1].data = res.data
+    //     option.series[2].data = [5,6,7,8]
+    //     option.series[3].data = [5,6,7,8]
+    //     pieOption.series[0].data = [
+    //       { value: res.data[0], name: '第一季度' },
+    //       { value: res.data[1], name: '第二季度' },
+    //       { value: res.data[2], name: '第三季度' },
+    //       { value: res.data[3], name: '第四季度' },
+    //     ]
+    //   }
+    //   option && myChart.setOption(option);
+    //   pieOption && pieChart.setOption(pieOption);
+    // });
+    echartsApi.statistics().then(res=>{
       if (res.code === '200'){
-        option.series[0].data = res.data
-        option.series[1].data = res.data
-        option.series[2].data = [5,6,7,8]
-        option.series[3].data = [5,6,7,8]
-        pieOption.series[0].data = [
-          { value: res.data[0], name: '第一季度' },
-          { value: res.data[1], name: '第二季度' },
-          { value: res.data[2], name: '第三季度' },
-          { value: res.data[3], name: '第四季度' },
-        ]
+        this.statistics = res.data
       }
-      option && myChart.setOption(option);
-      pieOption && pieChart.setOption(pieOption);
     })
   },
 }

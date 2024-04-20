@@ -8,7 +8,7 @@ import lombok.Data;
  * @since：2024/2/16 19:35
  * @description:
  */
-@TableName("sys_role_menu")
+@TableName("role_menu")
 @Data
 public class RoleMenu {
     private Integer roleId;

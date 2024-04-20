@@ -19,6 +19,8 @@
 </template>
 
 <script>
+import userApi from "@/api/userApi.js";
+
 export default {
   name: "Password",
   data() {
@@ -61,7 +63,7 @@ export default {
     save() {
       this.$refs.pass.validate((valid) => {
         if (valid) {
-          this.request.post("/user/password", this.form).then(res => {
+          userApi.password(this.form).then(res => {
             if (res.code === '200') {
               this.$message.success("修改成功")
               this.$store.commit("logout")

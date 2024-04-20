@@ -28,7 +28,7 @@
       <el-table-column prop="flag" label="唯一标识"></el-table-column>
       <el-table-column prop="description" label="描述"></el-table-column>
       <el-table-column label="操作" width="280" align="center">
-        <template slot-scope="scope">
+        <template v-slot="scope">
           <el-button type="danger" @click="handleMenu(scope.row)">分配菜单 <i class="el-icon-menu"></i></el-button>
           <el-button type="warning" @click="handleEdit(scope.row)">编辑 <i class="el-icon-edit"></i></el-button>
           <el-popconfirm
@@ -47,6 +47,12 @@
     </el-table>
     <div style="padding: 10px 0">
       <el-pagination
+          @current-change="handleCurrentChange"
+          @size-change="handleSizeChange"
+          :current-page="pageNum"
+          :page-sizes="[2 ,5, 10, 15, 20]"
+          :page-size="pageSize"
+          layout="total, sizes, prev, pager, next, jumper"
           :total="total">
       </el-pagination>
     </div>
@@ -90,14 +96,17 @@
 </template>
 
 <script>
+import menuApi from "@/api/menuApi.js";
+import roleApi from "@/api/roleApi.js";
+
 export default {
   name: "User",
   data(){
     return{
       tableData: [],
       total: 0,
-      // pageNum: 1,
-      // pageSize: 10,
+      pageNum: 1,
+      pageSize: 10,
       name: "",
       dialogFormVisible: false,
       menuDialogVisible: false,
@@ -118,24 +127,32 @@ export default {
   },
   methods:{
     load(){
-      this.request.get("/role",{
-            params:{
-              name:this.name,
-            }
-          }
-      ).then(res=>{
+      roleApi.page({
+        pageNum:this.pageNum,
+        pageSize:this.pageSize,
+        name: this.name
+      }).then(res=>{
         if(res.code==='200'){
-          this.tableData = res.data
-          this.total = res.data.length
+          this.tableData = res.data.records
+          this.total = res.data.total
         }
-
       })
-
     },
     reset(){
       this.name=""
-      this.request.post("/role/reset")
+      roleApi.reset()
       this.load()
+    },
+    save(){
+      roleApi.saveOrUpdate(this.form).then(res=>{
+        if (res.code === '200'){
+          this.$message.success("添加成功");
+          this.dialogFormVisible=false
+        }else{
+          this.$message.error("添加失败")
+        }
+        this.load()
+      })
     },
     handleSizeChange(pageSize) {
       this.pageSize=pageSize
@@ -149,35 +166,14 @@ export default {
       this.dialogFormVisible=true
       this.form={}
     },
-    handleMenu(row){
-      this.menuDialogVisible = true
-      this.roleId = row.id
-      this.roleFlag = row.flag
 
-      this.request.get("/menu",{
-            params:{
-              name:"",
-            }
-          }
-      ).then(res=>{
-        if(res.code==='200'){
-          this.menuData = res.data
-          this.expands = this.menuData.map(v=>v.id)
-        }
-      })
-      this.request.get("/role/roleMenu/"+row.id).then(res=>{
-        if(res.code==='200'){
-          this.$refs.tree.setCheckedKeys(res.data);
-        }
-      })
-    },
     handleEdit(row){
       this.form = row
       this.dialogFormVisible = true
       this.load()
     },
     handleDelete(id){
-      this.request.delete("/role/"+id).then(res=>{
+      roleApi.deleteById(id).then(res=>{
         if (res.code === '200'){
           this.$message.success("删除成功");
         }else{
@@ -188,7 +184,7 @@ export default {
     },
     handleDeleteBatch(){
       let ids = this.multipleSelection.map(v => v.id)
-      this.request.delete("/role/del/batch", {data:ids}).then(res=>{
+      roleApi.deleteBatch(ids).then(res=>{
         if (res.code === '200'){
           this.$message.success("批量删除成功");
         }else{
@@ -198,22 +194,27 @@ export default {
       })
     },
     handleSelectionChange(val){
-      console.log(val)
       this.multipleSelection = val
     },
-    save(){
-      this.request.post("/role",this.form).then(res=>{
-        if (res.code === '200'){
-          this.$message.success("添加成功");
-          this.dialogFormVisible=false
-        }else{
-          this.$message.error("添加失败")
+    handleMenu(row){
+      this.menuDialogVisible = true
+      this.roleId = row.id
+      this.roleFlag = row.flag
+
+      menuApi.getByName("").then(res=>{
+        if(res.code==='200'){
+          this.menuData = res.data
+          this.expands = this.menuData.map(v=>v.id)
         }
-        this.load()
+      })
+      roleApi.getMenus(row.id).then(res=>{
+        if(res.code==='200'){
+          this.$refs.tree.setCheckedKeys(res.data);
+        }
       })
     },
     saveRoleMenu(){
-      this.request.post("/role/roleMenu/"+this.roleId,this.$refs.tree.getCheckedKeys()).then(res=>{
+      roleApi.saveRoleMenus(this.roleId,this.$refs.tree.getCheckedKeys()).then(res=>{
         if (res.code === '200'){
           this.menuDialogVisible = false
 

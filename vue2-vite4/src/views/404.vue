@@ -11,7 +11,7 @@ export default {
 
 <style>
 .bgImg{
-  background-image: url('@/assets/404.png');
+  background-image: url('@/assets/img/404.png');
   background-size: 100% 100vh;
   height: 100vh;
   width: 100%;

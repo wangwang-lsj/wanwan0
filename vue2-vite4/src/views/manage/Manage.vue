@@ -1,11 +1,11 @@
 <template>
   <el-container style="min-height: 100vh;">
-    <el-aside :width="sideWidth+'px'" style="box-shadow: 2px 0 6px rgb(0 21 41)">
+    <el-aside :width="sideWidth+'px'" style="box-shadow: 2px 0 6px rgb(0 21 41);position: relative;z-index: 1000">
       <Aside :isCollapse="isCollapse"></Aside>
     </el-aside>
 
     <el-container style="min-height: 100vh">
-      <el-header style="border-bottom:1px solid gray; height: 60px">
+      <el-header style="border-bottom:1px solid gray; height: 60px;position: sticky;top: 0;z-index: 999; background-color: #e6e6e6">
         <Header :collapseBtnClass="collapseBtnClass" :collapse="collapse" :user="user"></Header>
       </el-header>
 
@@ -18,6 +18,7 @@
 <script>
 import Aside from "@/components/Aside.vue";
 import Header from "@/components/Header.vue";
+import userApi from "@/api/userApi.js";
 export default {
   components:{
     Aside,
@@ -52,7 +53,7 @@ export default {
       }
     },
     getUser(){
-      this.request.get("/user/username/"+this.user.username).then((res)=>{
+      userApi.getByName(this.user.username).then((res)=>{
         if(res.code === '200'){
           this.user = res.data
         }

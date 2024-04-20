@@ -1,5 +1,7 @@
 <template>
-  <el-menu :default-openeds="opens" style="min-height: 100%;overflow-x: hidden; border-right: solid 0px #e6e6e6"
+
+  <el-menu :default-openeds="opens" style="min-height: 100%;overflow-x: hidden; border-right: solid 0 #e6e6e6;position: fixed;"
+           :style="isCollapse? 'width: 64px;':'width: 200px;'"
            background-color="rgb(48,65,86)"
            text-color="#fff"
            active-text-color="ffd04b"
@@ -7,9 +9,10 @@
            :collapse="isCollapse"
            :collapse-transition="false"
            router
+
   >
     <div style="height: 60px; line-height: 60px; text-align: center">
-      <img src="../assets/manageLogo.png" style="width: 21px; vertical-align: middle" >
+      <img src="../assets/img/manageLogo.png" style="width: 21px; vertical-align: middle" >
       <b style="color: white" v-show="!isCollapse">后台管理系统</b>
     </div>
     <div v-for="item in menus" :key="item.id">

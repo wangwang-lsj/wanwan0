@@ -24,7 +24,7 @@
           <el-button type="danger" slot="reference" style="margin-right: 5px">批量删除 <i class="el-icon-remove-outline"></i></el-button>
         </el-popconfirm>
       </template>
-      <el-upload :action="'http://'+serverIp+':9090/user/import'"
+      <el-upload :action="userApi.importExcel()"
                  accept="xlsx"
                  :on-success="handleUploadSuccess"
                  :on-error="handleUploadError"
@@ -68,8 +68,9 @@
           @current-change="handleCurrentChange"
           @size-change="handleSizeChange"
           :current-page="pageNum"
-          :page-sizes="[2 ,5, 10, 15, 20]"
           :page-size="pageSize"
+
+          :page-sizes="[2 ,5, 10, 15, 20]"
           layout="total, sizes, prev, pager, next, jumper"
           :total="total">
       </el-pagination>
@@ -106,13 +107,18 @@
 </template>
 
 <script>
-import {serverIp} from "../../../public/config";
+import userApi from "@/api/userApi.js";
+import roleApi from "@/api/roleApi.js";
 
 export default {
   name: "User",
+  computed: {
+    userApi() {
+      return userApi
+    }
+  },
   data(){
     return{
-      serverIp:serverIp,
       tableData: [],
       total: 0,
       pageNum: 1,
@@ -130,23 +136,18 @@ export default {
   },
   created() {
     this.load()
-    console.log("create")
-
   },
   methods:{
     load(){
-      this.request.get("/user/page",{
-            params:{
-              pageNum:this.pageNum,
-              pageSize:this.pageSize,
-              username:this.username,
-              nickname:this.nickname,
-              email:this.email,
-              phone:this.phone,
-              address:this.address
-            }
-          }
-      ).then(res=>{
+      userApi.page({
+          pageNum:this.pageNum,
+          pageSize:this.pageSize,
+          username:this.username,
+          nickname:this.nickname,
+          email:this.email,
+          phone:this.phone,
+          address:this.address
+      }).then(res=>{
         if(res.code==='200'){
           this.tableData = res.data.records
           this.total = res.data.total
@@ -154,7 +155,7 @@ export default {
       }).catch((error)=>{
         console.log(error)
       })
-      this.request.get("/role").then(res=>{
+      roleApi.getRoles().then(res=>{
         if(res.code==='200'){
           this.roles = res.data
         }
@@ -168,7 +169,7 @@ export default {
       this.email=""
       this.phone=""
       this.address=""
-      this.request.post("/user/reset")
+      userApi.reset()
       this.load()
 
     },
@@ -189,8 +190,21 @@ export default {
       this.dialogFormVisible = true
       this.load()
     },
+    save(){
+      userApi.saveOrUpdate(this.form).then(res=>{
+        if (res.code === '200'){
+          this.$message.success("添加成功");
+          this.dialogFormVisible=false
+        }else{
+          this.$message.error("添加失败")
+        }
+        this.load()
+      }).catch((error)=>{
+        console.log(error)
+      })
+    },
     handleDelete(id){
-      this.request.delete("/user/"+id).then(res=>{
+      userApi.deleteById(id).then(res=>{
         if (res.code === '200'){
           this.$message.success("删除成功");
         }else{
@@ -203,7 +217,7 @@ export default {
     },
     handleDeleteBatch(){
       let ids = this.multipleSelection.map(v => v.id)
-      this.request.delete("/user/del/batch", {data:ids}).then(res=>{
+      userApi.deleteBatch(ids).then(res=>{
         if (res.code === '200'){
           this.$message.success("批量删除成功");
         }else{
@@ -217,7 +231,7 @@ export default {
       this.multipleSelection = val
     },
     handleExport(){
-      window.open('http://'+serverIp+':9090/user/export')
+      userApi.exportExcel()
     },
     handleUploadSuccess(){
       console.log()
@@ -236,19 +250,7 @@ export default {
     //   }
     //   this.load()
     // },
-    save(){
-      this.request.post("/user",this.form).then(res=>{
-        if (res.code === '200'){
-          this.$message.success("添加成功");
-          this.dialogFormVisible=false
-        }else{
-          this.$message.error("添加失败")
-        }
-        this.load()
-      }).catch((error)=>{
-        console.log(error)
-      })
-    },
+
 
   }
 }

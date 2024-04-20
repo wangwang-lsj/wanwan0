@@ -19,7 +19,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("sys_role")
+@TableName("role")
 @ApiModel(value = "Role对象", description = "")
 public class Role implements Serializable {
 

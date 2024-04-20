@@ -31,7 +31,7 @@ import java.util.List;
  * @description:文件上传相关接口
  */
 @RestController
-@RequestMapping("/file")
+@RequestMapping("/api/files")
 public class FileController {
     @Value("${files.upload.path}")
     private String fileUploadPath;
@@ -39,20 +39,24 @@ public class FileController {
     private String serverIp;
     @Resource
     private FileMapper fileMapper;
+
+
+
+
     /**
      * 文件上传
      * @param file
      * @return
      */
     @PostMapping("/upload")
-    public String upload(@RequestParam MultipartFile file)throws IOException {
+    public Result upload(@RequestParam MultipartFile file)throws IOException {
         String originalFilename = file.getOriginalFilename();
         String type = FileUtil.extName(originalFilename);
         long size = file.getSize();
         // 存储到磁盘
         String uuid = IdUtil.fastSimpleUUID();
         String fileUUID= uuid + StrUtil.DOT + type;
-
+        // files/文件名
         File uploadFile = new File(fileUploadPath+fileUUID);
         if(!uploadFile.getParentFile().exists()){
             uploadFile.getParentFile().mkdirs();
@@ -65,7 +69,7 @@ public class FileController {
 
         }else{
             file.transferTo(uploadFile);
-            url = "http://"+serverIp+":9090/file/"+fileUUID;
+            url = "http://"+serverIp+":9090/api/files/"+fileUUID;
         }
 
         // 存储数据库
@@ -76,7 +80,7 @@ public class FileController {
         saveFile.setUrl(url);
         saveFile.setMd5(md5);
         fileMapper.insert(saveFile);
-        return url;
+        return Result.success(url);
     }
 
     @GetMapping("/{fileUUID}")
@@ -99,9 +103,9 @@ public class FileController {
      * @return
      */
     @GetMapping("/page")
-    public Result findPage(@RequestParam Integer pageNum,
-                           @RequestParam Integer pageSize,
-                           @RequestParam(defaultValue = "") String name
+    public Result page(@RequestParam Integer pageNum,
+                       @RequestParam Integer pageSize,
+                       @RequestParam(defaultValue = "") String name
     ) {
         IPage<Files> page = new Page<>(pageNum,pageSize);
         QueryWrapper<Files> queryWrapper = new QueryWrapper<>();
@@ -113,17 +117,18 @@ public class FileController {
         IPage<Files> userIPage = fileMapper.selectPage(page,queryWrapper);
         return  Result.success(userIPage);
     }
-    @PostMapping("/update")
-    public Result update(@RequestBody Files files) {
-        return Result.success(fileMapper.updateById(files));
+
+    @PutMapping("/update")
+    public Result update(@RequestBody Files file) {
+        return Result.success(fileMapper.updateById(file));
     }
     @DeleteMapping("/{id}")
-    public Result delete(@PathVariable Integer id) {
+    public Result deleteById(@PathVariable Integer id) {
         Files files = fileMapper.selectById(id);
         files.setIsDelete(true);
         return Result.success(fileMapper.updateById(files));
     }
-    @DeleteMapping("/del/batch")
+    @DeleteMapping()
     public Result deleteBatch(@RequestBody List<Integer> ids){
         QueryWrapper<Files> queryWrapper = new QueryWrapper<>();
         queryWrapper.in("id",ids);
@@ -134,6 +139,13 @@ public class FileController {
         }
         return Result.success();
     }
+
+    @PutMapping()
+    public Result editFileById(@RequestBody Files file){
+        return Result.success(fileMapper.updateById(file));
+    }
+
+
 
     /**
      * 通过md5获取文件

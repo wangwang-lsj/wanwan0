@@ -53,24 +53,24 @@ public class ${table.controllerName} {
                 return Result.success();
         }
 
-        @PostMapping("/del/batch")
+        @DeleteMapping("/del/batch")
         public Result deleteBatch(@RequestBody List<Integer> ids) {
                 ${table.entityPath}Service.removeByIds(ids);
                 return Result.success();
         }
 
         @GetMapping
-        public Result findAll() {
+        public Result selectAll() {
                 return Result.success(${table.entityPath}Service.list());
         }
 
         @GetMapping("/{id}")
-        public Result findOne(@PathVariable Integer id) {
+        public Result selectOne(@PathVariable Integer id) {
                 return Result.success(${table.entityPath}Service.getById(id));
         }
 
         @GetMapping("/page")
-        public Result findPage(@RequestParam Integer pageNum,
+        public Result selectPage(@RequestParam Integer pageNum,
         @RequestParam Integer pageSize) {
                 QueryWrapper<${entity}> queryWrapper = new QueryWrapper<>();
                 queryWrapper.orderByDesc("id");

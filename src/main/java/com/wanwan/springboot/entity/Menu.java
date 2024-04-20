@@ -22,7 +22,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-@TableName("sys_menu")
+@TableName("menu")
 @ApiModel(value = "Menu对象", description = "")
 public class Menu implements Serializable {
 

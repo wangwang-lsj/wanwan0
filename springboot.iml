@@ -26,6 +26,7 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="js-base64" level="application" />
+    <orderEntry type="library" name="@types/requirejs" level="application" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-web:2.6.13" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter:2.6.13" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot:2.6.13" level="project" />
@@ -48,9 +49,11 @@
     <orderEntry type="library" name="Maven: org.springframework:spring-web:5.3.23" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-beans:5.3.23" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-webmvc:5.3.23" level="project" />
-    <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.3.23" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-context:5.3.23" level="project" />
     <orderEntry type="library" name="Maven: org.springframework:spring-expression:5.3.23" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-aop:2.6.13" level="project" />
+    <orderEntry type="library" name="Maven: org.springframework:spring-aop:5.3.23" level="project" />
+    <orderEntry type="library" name="Maven: org.aspectj:aspectjweaver:1.9.7" level="project" />
     <orderEntry type="library" name="Maven: org.mybatis.spring.boot:mybatis-spring-boot-starter:2.2.1" level="project" />
     <orderEntry type="library" name="Maven: org.springframework.boot:spring-boot-starter-jdbc:2.6.13" level="project" />
     <orderEntry type="library" name="Maven: com.zaxxer:HikariCP:4.0.3" level="project" />
@@ -88,6 +91,7 @@
     <orderEntry type="library" name="Maven: io.netty:netty-transport:4.1.84.Final" level="project" />
     <orderEntry type="library" name="Maven: io.projectreactor:reactor-core:3.4.24" level="project" />
     <orderEntry type="library" name="Maven: org.reactivestreams:reactive-streams:1.0.4" level="project" />
+    <orderEntry type="library" name="Maven: com.alibaba:fastjson:1.2.83" level="project" />
     <orderEntry type="library" name="Maven: io.springfox:springfox-boot-starter:3.0.0" level="project" />
     <orderEntry type="library" name="Maven: io.springfox:springfox-oas:3.0.0" level="project" />
     <orderEntry type="library" name="Maven: io.swagger.core.v3:swagger-annotations:2.1.2" level="project" />

@@ -8,7 +8,7 @@ import lombok.Data;
  * @since：2024/2/16 13:52
  * @description:
  */
-@TableName("sys_dict")
+@TableName("dict")
 @Data
 public class Dict {
     private String name;

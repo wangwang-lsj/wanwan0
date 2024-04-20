@@ -24,6 +24,7 @@
 </template>
 
 <script>
+import userApi from "@/api/userApi.js";
 export default {
   name: "Register",
   data(){
@@ -84,7 +85,7 @@ export default {
     handleRegister(){
       this.$refs['userForm'].validate((valid) => {
         if (valid) {
-          this.request.post("/user/register",this.user).then(res=>{
+          userApi.register(this.user).then(res=>{
             if(res.code === "200"){
               //res是对象
               this.$message.success("注册成功")
@@ -94,7 +95,6 @@ export default {
             }
           })
         } else {
-          console.log('error submit!!');
           return false;
         }
       });

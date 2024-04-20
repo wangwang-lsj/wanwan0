@@ -8,6 +8,7 @@ import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.wanwan.springboot.common.Constants;
 import com.wanwan.springboot.common.Result;
+import com.wanwan.springboot.entity.dto.MyRequestBody;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.web.bind.annotation.*;
@@ -20,96 +21,126 @@ import java.util.List;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author wanwan
  * @since 2024-02-15
  */
 @RestController
-@RequestMapping("/role")
+@RequestMapping("/api")
 public class RoleController {
-        @Resource
-        private IRoleService roleService;
-        @Autowired
-        private StringRedisTemplate stringRedisTemplate;
-        // 新增或者更新
-        @PostMapping
-        public Result save(@RequestBody Role role) {
-                stringRedisTemplate.delete(Constants.ROLE_KEY);
-                roleService.saveOrUpdate(role);
-                return Result.success();
-        }
+    @Resource
+    private IRoleService roleService;
+    @Autowired
+    private StringRedisTemplate stringRedisTemplate;
 
-        @DeleteMapping("/{id}")
-        public Result delete(@PathVariable Integer id) {
-                stringRedisTemplate.delete(Constants.ROLE_KEY);
-                roleService.removeById(id);
-                return Result.success();
-        }
+    /**
+     * 角色分页
+     * @param pageNum
+     * @param pageSize
+     * @param name
+     * @return Page
+     */
+    @GetMapping("/roles/page")
+    public Result page(@RequestParam Integer pageNum,
+                          @RequestParam Integer pageSize,
+                          @RequestParam(defaultValue = "") String name
 
-        @PostMapping("/del/batch")
-        public Result deleteBatch(@RequestBody List<Integer> ids) {
-                stringRedisTemplate.delete(Constants.ROLE_KEY);
-                roleService.removeByIds(ids);
-                return Result.success();
+    ) {
+        QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
+        if (StrUtil.isNotBlank(name)) {
+            queryWrapper.like("name", name);
         }
+        return Result.success(roleService.page(new Page<>(pageNum, pageSize), queryWrapper));
+    }
 
-        @GetMapping
-        public Result findAll(@RequestParam(defaultValue = "") String name) {
-                QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
-                if(!"".equals(name)){
-                        queryWrapper.like("name",name);
-                }
-                List<Role> list;
-                String jsonStr = stringRedisTemplate.opsForValue().get(Constants.ROLE_KEY);
-                if(StrUtil.isBlank(jsonStr)){
-                        list = roleService.list(queryWrapper);
-                        stringRedisTemplate.opsForValue().set(Constants.ROLE_KEY, JSONUtil.toJsonStr(list));
-                }else {
-                        list = JSONUtil.toBean(jsonStr, new TypeReference<List<Role>>() {
-                        },true);
-                }
-                return Result.success(list);
-        }
+    /**
+     * 获取所有角色
+     * @return List<Role>
+     */
+    @GetMapping("/roles")
+    public Result getRoles() {
+        return Result.success(roleService.list());
+    }
 
-        @GetMapping("/{id}")
-        public Result findOne(@PathVariable Integer id) {
-                return Result.success(roleService.getById(id));
-        }
+    /**
+     * 根据id获取角色
+     * @param id
+     * @return Role
+     */
+    @GetMapping("/roles/{id}")
+    public Result getById(@PathVariable Integer id) {
+        return Result.success(roleService.getById(id));
+    }
 
-        @GetMapping("/page")
-        public Result findPage(@RequestParam Integer pageNum,
-                               @RequestParam Integer pageSize,
-                               @RequestParam(defaultValue = "") String name) {
-                QueryWrapper<Role> queryWrapper = new QueryWrapper<>();
-                if(!"".equals(name)){
-                        queryWrapper.like("name",name);
-                }
-                // queryWrapper.orderByDesc("id");
-                return Result.success(roleService.page(new Page<>(pageNum, pageSize), queryWrapper));
-        }
+    /**
+     * 新增或者更新角色
+     * @param role
+     * @return Boolean
+     */
+    @PostMapping("/roles")
+    public Result saveOrUpdate(@RequestBody Role role) {
+        stringRedisTemplate.delete(Constants.ROLE_KEY);
+        return Result.success(roleService.saveOrUpdate(role));
+    }
 
-        /**
-         * 绑定角色和菜单的关系
-         * @param roleId 角色id
-         * @param menuIds 菜单id数组
-         * @return
-         */
-        @PostMapping("/roleMenu/{roleId}")
-        public Result save(@PathVariable Integer roleId,@RequestBody List<Integer> menuIds) {
-                roleService.setRoleMenu(roleId, menuIds);
-                return Result.success();
-        }
-        @GetMapping("/roleMenu/{roleId}")
-        public Result getRoleMenu(@PathVariable Integer roleId){
-                return Result.success(roleService.getRoleMenu(roleId));
-        }
-        @PostMapping("/reset")
-        public Result reset(){
-                stringRedisTemplate.delete(Constants.ROLE_KEY);
-                return Result.success();
-        }
+    /**
+     * 删除角色
+     * @param id
+     * @return Boolean
+     */
+    @DeleteMapping("/roles/{id}")
+    public Result deleteById(@PathVariable Integer id) {
+        stringRedisTemplate.delete(Constants.ROLE_KEY);
+        return Result.success(roleService.removeById(id));
+    }
+
+    /**
+     * 删除多个角色
+     * @param ids
+     * @return Boolean
+     */
+    @DeleteMapping("/roles")
+    public Result deleteBatch(@RequestBody List<Integer> ids) {
+        stringRedisTemplate.delete(Constants.ROLE_KEY);
+
+        return Result.success(roleService.removeByIds(ids));
+    }
+
+
+
+    /**
+     * 获取角色对应的菜单
+     * @param roleId
+     * @return List<Integer>
+     */
+    @GetMapping("/roles/{roleId}/menus")
+    public Result getRoleMenus(@PathVariable Integer roleId) {
+        return Result.success(roleService.getRoleMenu(roleId));
+    }
+
+    /**
+     * 绑定角色和菜单的关系
+     * @param roleId  角色id
+     * @param menuIds 菜单id数组
+     * @return Boolean
+     */
+    @PostMapping("/roles/{roleId}/menus")
+    public Result saveRoleMenus(@PathVariable Integer roleId, @RequestBody List<Integer> menuIds) {
+        roleService.setRoleMenu(roleId, menuIds);
+        return Result.success();
+    }
+
+
+    /**
+     * 删除redis缓存
+     * @return Boolean
+     */
+    @PostMapping("/reset")
+    public Result reset() {
+        return Result.success(stringRedisTemplate.delete(Constants.ROLE_KEY));
+    }
 
 }
 

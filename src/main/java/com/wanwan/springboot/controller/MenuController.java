@@ -22,72 +22,100 @@ import java.util.stream.Collectors;
 
 /**
  * <p>
- *  前端控制器
+ * 前端控制器
  * </p>
  *
  * @author wanwan
  * @since 2024-02-15
  */
 @RestController
-@RequestMapping("/menu")
+@RequestMapping("/api")
 public class MenuController {
-        @Resource
-        private IMenuService menuService;
-        @Resource
-        private MenuMapper menuMapper;
-        @Resource
-        private DictMapper dictMapper;
-        @Resource
-        private UserServiceImpl userService;
+    @Resource
+    private IMenuService menuService;
+    @Resource
+    private MenuMapper menuMapper;
+    @Resource
+    private DictMapper dictMapper;
+    @Resource
+    private UserServiceImpl userService;
 
-        // 新增或者更新
-        @PostMapping
-        public Result save(@RequestBody Menu menu) {
-                menuService.saveOrUpdate(menu);
-                return Result.success();
-        }
+    /**
+     * 分页获取菜单列表(弃用）
+     * @param pageNum
+     * @param pageSize
+     * @param name
+     * @return Page
+     */
+    @GetMapping("/menus/page")
+    public Result page(@RequestParam Integer pageNum,
+                       @RequestParam Integer pageSize,
+                       @RequestParam(defaultValue = "") String name
+    ) {
+        return Result.success();
+    }
 
-        @DeleteMapping("/{id}")
-        public Result delete(@PathVariable Integer id) {
-                menuService.removeById(id);
-                return Result.success();
-        }
+    /**
+     * 获取所有菜单图标
+     * @return List<Dict>
+     */
+    @GetMapping("/menus/icons")
+    public Result getIcons() {
+        QueryWrapper<Dict> queryWrapper = new QueryWrapper<Dict>();
+        queryWrapper.eq("type", Constants.DICT_TYPE_ICON);
+        return Result.success(dictMapper.selectList(queryWrapper));
+    }
 
-        @DeleteMapping("/del/batch")
-        public Result deleteBatch(@RequestBody List<Integer> ids) {
-                menuService.removeByIds(ids);
-                return Result.success();
-        }
+    /**
+     * 根据菜单名名获取菜单(搜索菜单)
+     * @param name
+     * @return List<Menu>
+     */
+    @GetMapping("/menus")
+    public Result getByName(@RequestParam(defaultValue = "") String name) {
+        return Result.success(menuService.selectMenus(name));
+    }
 
-        @GetMapping
-        public Result findAll(@RequestParam(defaultValue = "") String name) {
-                return Result.success(menuService.findMenus(name));
-        }
+    /**
+     * 通过id获取菜单
+     * @param id
+     * @return Menu
+     */
+    @GetMapping("/menus/{id}")
+    public Result getById(@PathVariable Integer id) {
+        return Result.success(menuService.getById(id));
+    }
 
-        @GetMapping("/{id}")
-        public Result findOne(@PathVariable Integer id) {
-                return Result.success(menuService.getById(id));
-        }
+    /**
+     * 新增或更改菜单
+     * @param menu
+     * @return Boolean
+     */
+    // 新增或者更新
+    @PostMapping("/menus")
+    public Result saveOrUpdate(@RequestBody Menu menu) {
+        return Result.success(menuService.saveOrUpdate(menu));
+    }
 
-        @GetMapping("/page")
-        public Result findPage(@RequestParam Integer pageNum,
-                               @RequestParam Integer pageSize,
-                               @RequestParam(defaultValue = "") String name
-                               ) {
-                QueryWrapper<Menu> queryWrapper = new QueryWrapper<>();
-                IPage<Menu> page = new Page<>(pageNum, pageSize);
-                if(!"".equals(name)){
-                        queryWrapper.like("name",name);
-                }
-                queryWrapper.orderByAsc("sort_num");
-                return Result.success(menuService.page(page,queryWrapper));
-        }
-        @GetMapping("/icons")
-        public Result getIcons(){
-                QueryWrapper<Dict> queryWrapper = new QueryWrapper<Dict>();
-                queryWrapper.eq("type", Constants.DICT_TYPE_ICON);
-                return Result.success(dictMapper.selectList(queryWrapper));
-        }
+    /**
+     * 删除菜单
+     * @param id
+     * @return Boolean
+     */
+    @DeleteMapping("/menus/{id}")
+    public Result deleteById(@PathVariable Integer id) {
 
+        return Result.success(menuService.removeById(id));
+    }
+
+    /**
+     * 删除菜单
+     * @param ids
+     * @return Boolean
+     */
+    @DeleteMapping("/menus")
+    public Result deleteBatch(@RequestBody List<Integer> ids) {
+        return Result.success(menuService.removeByIds(ids));
+    }
 }
 

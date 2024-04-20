@@ -90,7 +90,7 @@
       <option name="myAdditionalJavadocTags" value="Description:,Author：玩玩,Date：2024/1/15" />
     </inspection_tool>
     <inspection_tool class="JavadocDeclaration" enabled="true" level="WARNING" enabled_by_default="true">
-      <option name="ADDITIONAL_TAGS" value="Description:,Author：玩玩,Date：2024/1/15" />
+      <option name="ADDITIONAL_TAGS" value="Description:,Author：玩玩,Date：2024/1/15,description" />
     </inspection_tool>
     <inspection_tool class="MissingJavadoc" enabled="true" level="WARNING" enabled_by_default="true">
       <option name="PACKAGE_SETTINGS">

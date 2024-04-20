@@ -3,7 +3,7 @@
     <el-form label-width="80px" size="small">
       <el-upload
           class="avatar-uploader"
-          :action="'http://'+serverIp+':9090/file/upload'"
+          :action="uploadURl"
           :show-file-list="false"
           :on-success="handleAvatarSuccess">
         <img v-if="form.avatarUrl" :src="form.avatarUrl" class="avatar">
@@ -32,13 +32,15 @@
 </template>
 
 <script>
-import {serverIp} from "../../../public/config";
+import userApi from "@/api/userApi.js";
+import fileApi from "@/api/fileApi.js";
 
 export default {
   name: "Person",
+
   data(){
     return {
-      serverIp:serverIp,
+      uploadURl: fileApi.upload(),
       form: {},
       user: localStorage.getItem("user")?JSON.parse(localStorage.getItem("user")):{},
     }
@@ -48,17 +50,15 @@ export default {
   },
   methods:{
     getUser(){
-      this.request.get("/user/username/"+this.user.username).then((res)=>{
+      userApi.getByName(this.user.username).then((res)=>{
         if(res.code === '200'){
           this.form = res.data
         }
       })
     },
     save(){
-      this.request.post("/user",this.form).then(res=>{
+      userApi.saveOrUpdate(this.form).then(res=>{
         if (res.code === '200'){
-          // this.user.avatarUrl = this.form.avatarUrl
-          // localStorage.setItem("user",JSON.stringify(this.user))
           this.$emit("refreshUser")
           this.$message.success("保存成功");
         }else{
@@ -68,13 +68,13 @@ export default {
       })
     },
     handleAvatarSuccess(res) {
-      this.form.avatarUrl = res
+      this.form.avatarUrl = res.data
     },
   }
 }
 </script>
 
-<style>
+<style scoped>
   .avatar-uploader{
     text-align: center;
     padding-bottom: 10px;
@@ -92,13 +92,13 @@ export default {
   .avatar-uploader-icon {
     font-size: 28px;
     color: #8c939d;
-    width: 138px;
+    width: 100%;
     height: 138px;
     line-height: 138px;
     text-align: center;
   }
   .avatar {
-    width: 138px;
+    width: 100%;
     height: 138px;
     display: block;
     border-radius: 10px;

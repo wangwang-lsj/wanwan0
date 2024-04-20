@@ -33,7 +33,7 @@ public class CodeGenerator {
                             .pathInfo(Collections.singletonMap(OutputFile.mapperXml, "D:\\IdeaProjects\\小白做毕设2024\\springboot\\src\\main\\resources\\mapper\\")); // 设置mapperXml生成路径
                 })
                 .strategyConfig(builder -> {
-                    builder.addInclude("course") // 设置需要生成的表名
+                    builder.addInclude("") // 设置需要生成的表名
                             .addTablePrefix("t_", "sys_"); // 设置过滤表前缀
                     builder.entityBuilder()
                             .enableLombok();

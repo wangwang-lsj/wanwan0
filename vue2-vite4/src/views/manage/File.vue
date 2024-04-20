@@ -4,12 +4,8 @@
     <el-button style="margin-left: 5px" type="primary" @click="load">搜索</el-button>
     <el-button style="margin-left: 5px" type="warning" @click="reset">重置</el-button>
     <div style="margin: 10px 0">
-      <el-upload :action="'http://'+ serverIp +':9090/file/upload'"
-                 :on-success="handleFileUploadSuccess"
-                 :on-error="handleFileUploadError"
-                 :show-file-list="false" style="display: inline-block; margin-right: 5px">
-        <el-button type="primary">上传文件 <i class="el-icon-top"></i></el-button>
-      </el-upload>
+
+      <el-button type="primary" @click="handUpload" style="display: inline-block; margin-right: 5px">上传文件 <i class="el-icon-top"></i></el-button>
       <el-popconfirm
           confirm-button-text='确定'
           cancel-button-text='取消'
@@ -34,28 +30,35 @@
       <el-table-column prop="type" label="文件类型" width="80">
       </el-table-column>
       <el-table-column prop="size" label="文件大小(kb)">
-        <template slot-scope="scope">
+        <template v-slot="scope">
           {{scope.row.size}}kb
         </template>
       </el-table-column>
 
       <el-table-column label="预览">
-        <template slot-scope="scope">
+        <template v-slot="scope">
+          <!--<el-image v-if="scope.row.type==='png'||'jpg'||'gif'" :src="scope.row.url" :preview-src-list="[scope.row.url]"></el-image>-->
           <el-button type="primary" @click="preview(scope.row.url)">预览</el-button>
         </template>
       </el-table-column>
       <el-table-column label="下载">
-        <template slot-scope="scope">
+        <template v-slot="scope">
           <el-button type="primary" @click="handleDownload(scope.row.url)">下载</el-button>
         </template>
       </el-table-column>
+      <el-table-column prop="url" label="地址" width="250px">
+
+      </el-table-column>
       <el-table-column prop="enable" label="启用">
-        <template slot-scope="scope">
+        <template v-slot="scope">
           <el-switch v-model="scope.row.enable" active-color="#13ce66" inactive-color="#ccc" @change="changeEnable(scope.row)"></el-switch>
         </template>
       </el-table-column>
+      <el-table-column prop="createTime" label="上传日期" width="150">
+      </el-table-column>
       <el-table-column label="操作" width="200" align="center">
-        <template slot-scope="scope">
+        <template v-slot="scope">
+          <el-button type="primary" @click="handleEdit(scope.row)">编辑 <i class="el-icon-edit"></i></el-button>
           <el-popconfirm
               style="margin-left: 5px"
               confirm-button-text='确定'
@@ -81,16 +84,44 @@
           :total="total">
       </el-pagination>
     </div>
+    <el-dialog title="文件信息" :visible.sync="dialogFormVisible" width="20%">
+      <el-form label-width="80px" size="small">
+        <el-form-item label="文件名" >
+          <el-input v-model="form.name" autocomplete="off"></el-input>
+        </el-form-item>
+      </el-form>
+      <div slot="footer" class="dialog-footer">
+        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button type="primary" @click="save">确 定</el-button>
+      </div>
+    </el-dialog>
+
+    <el-dialog class="fileUpload"title="文件上传" :visible.sync="uploadDialogFormVisible" style="min-width: 500px">
+      <el-upload :action="uploadURl"
+                 :on-success="handleFileUploadSuccess"
+                 :on-error="handleFileUploadError"
+                 :show-file-list="true"
+                 drag
+                 :limit="10"
+                 multiple>
+                <i class="el-icon-upload"></i>
+                <div class="el-upload__text">将文件拖到此处，或<em>点击上传</em></div>
+                <div class="el-upload__tip" slot="tip">上传所需文件，一次上传最多10个文件，单个文件且不超过100MB，总上传不超过1000MB，</div>
+      >
+      </el-upload>
+
+    </el-dialog>
   </div>
 </template>
 
 <script>
-import {serverIp} from "../../../public/config";
+import fileApi from "@/api/fileApi.js";
 export default {
   name: "File",
+
   data(){
     return{
-      serverIp: serverIp,
+      uploadURl: fileApi.upload(),
       headerBg: 'headerBg',
       tableData:[],
       name: '',
@@ -98,6 +129,9 @@ export default {
       pageNum: 1,
       pageSize: 10,
       total: 0,
+      dialogFormVisible: false,
+      uploadDialogFormVisible: false,
+      form: {},
     }
   },
   created() {
@@ -105,12 +139,11 @@ export default {
   },
   methods: {
     load() {
-      this.request.get("/file/page", {
-            params: {
-              pageNum: this.pageNum,
-              pageSize: this.pageSize,
-              name: this.name,
-            }
+      fileApi.page(
+          {
+            pageNum: this.pageNum,
+            pageSize: this.pageSize,
+            name: this.name
           }
       ).then(res => {
         if (res.code === '200') {
@@ -132,8 +165,26 @@ export default {
       this.pageNum = pageNum
       this.load()
     },
+    handleEdit(row){
+      this.form = row
+      this.form.name = this.form.name.replace(/\.[^.]+$/,"")
+      this.dialogFormVisible = true
+    },
+    save(){
+      let filename = this.form.name
+      filename = filename.endsWith('.'+this.form.type)?filename:filename.concat(".",this.form.type)
+      this.form.name = filename
+      fileApi.update(this.form).then(res => {
+        if (res.code === '200') {
+          this.$message.success("编辑成功");
+        } else {
+          this.$message.error("编辑失败")
+        }
+        this.load()
+      })
+    },
     handleDelete(id) {
-      this.request.delete("/file/" + id).then(res => {
+      fileApi.deleteById(id).then(res => {
         if (res.code === '200') {
           this.$message.success("删除成功");
         } else {
@@ -144,7 +195,7 @@ export default {
     },
     handleDeleteBatch() {
       let ids = this.multipleSelection.map(v => v.id)
-      this.request.delete("/file/del/batch", {data: ids}).then(res => {
+      fileApi.deleteBatch(ids).then(res => {
         if (res.code === '200') {
           this.$message.success("批量删除成功");
         } else {
@@ -168,14 +219,17 @@ export default {
       this.load()
     },
     handleDownload(url){
-      window.open(url)
+      fileApi.download(url)
     },
     changeEnable(row){
-      this.request.post("/file/update",row).then(res=>{
+      fileApi.update(row).then(res=>{
         if(res.code === '200'){
           this.$message.success("操作成功")
         }
       })
+    },
+    handUpload(){
+      this.uploadDialogFormVisible = true
     },
     preview(url) {
       window.open('http://127.0.0.1:8012/onlinePreview?url=' + encodeURIComponent(window.btoa((url))))
@@ -186,4 +240,5 @@ export default {
 </script>
 
 <style>
+
 </style>

@@ -1,5 +1,6 @@
 package com.wanwan.springboot.exception;
 
+import com.wanwan.springboot.common.enums.ResultCodeEnum;
 import lombok.Getter;
 
 /**
@@ -13,6 +14,10 @@ public class ServiceException extends RuntimeException{
     public ServiceException(String code,String msg){
         super(msg);
         this.code=code;
+    }
+    public ServiceException(ResultCodeEnum resultCodeEnum){
+        super(resultCodeEnum.msg);
+        this.code = resultCodeEnum.code;
     }
 
 }

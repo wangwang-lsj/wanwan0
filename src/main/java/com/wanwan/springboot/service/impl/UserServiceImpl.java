@@ -1,12 +1,14 @@
 package com.wanwan.springboot.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.lang.TypeReference;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.json.JSONUtil;
 import cn.hutool.log.Log;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.wanwan.springboot.common.Constants;
+import com.wanwan.springboot.common.enums.ResultCodeEnum;
 import com.wanwan.springboot.entity.Menu;
 import com.wanwan.springboot.entity.User;
 import com.wanwan.springboot.entity.dto.UserDTO;
@@ -56,6 +58,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         User one = getUserInfo(userDTO);
         if(one != null){
+            // 刷新上次登陆时间
+            one.setRecentlyLanded(DateUtil.now());
+            updateById(one);
+
             BeanUtil.copyProperties(one,userDTO,true);
             String token = TokenUtils.genToken(one.getId().toString(), one.getPassword());
             userDTO.setToken(token);
@@ -65,7 +71,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             userDTO.setMenus(roleMenus);
             return userDTO;
         }else{
-            throw new ServiceException(Constants.CODE_600,"用户名或密码错误");
+            throw new ServiceException(ResultCodeEnum.USER_ACCOUNT_ERROR);
         }
     }
 
@@ -78,7 +84,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             save(one);
             stringRedisTemplate.delete(Constants.USER_KEY);
         }else {
-            throw new ServiceException(Constants.CODE_600,"用户已存在");
+            throw new ServiceException(ResultCodeEnum.USER_EXIT_ERROR);
         }
         return one;
     }
@@ -127,7 +133,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     public void updatePassword(UserPasswordDTO userPasswordDTO) {
         int update = userMapper.updatePassword(userPasswordDTO);
         if (update < 1) {
-            throw new ServiceException(Constants.CODE_600, "密码错误");
+            throw new ServiceException(ResultCodeEnum.PARAM_PASSWORD_ERROR);
         }
     }
 
@@ -141,7 +147,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
             one = getOne(queryWrapper);
         } catch (Exception e) {
             LOG.error(e);
-            throw new ServiceException(Constants.CODE_500,"系统异常");
+            throw new ServiceException(ResultCodeEnum.SYSTEM_ERROR);
         }
         return one;
     }
@@ -156,7 +162,7 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
         List<Integer> menuIds = roleMenuMapper.selectByRoleId(roleId);
         // 查出所有菜单
-        List<Menu> menus = menuService.findMenus("");
+        List<Menu> menus = menuService.selectMenus("");
         List<Menu> roleMenus = new ArrayList<>();
         // 筛选当前用户菜单
         for(Menu menu: menus){
